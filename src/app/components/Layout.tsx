@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Sidebar from "./Sidebar";
-// import SearchBar from "./SearchBar";
-import { FaBars } from "react-icons/fa";
 import NavBar from "./NavBar"; // Import the NavBar component
 import { SearchProvider } from "@/providers/SearchProvider";
 

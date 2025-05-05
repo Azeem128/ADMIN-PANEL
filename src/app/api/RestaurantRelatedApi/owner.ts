@@ -43,13 +43,8 @@
 //       },
 //     });
 //   };
-import { createClient } from "@supabase/supabase-js";
-import { toast } from "react-toastify";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from "@/lib/supabaseClient";
 
 interface RestaurantOwner {
   restaurantownerid: string;
@@ -76,7 +71,7 @@ export const getAllRestaurantOwners = async (): Promise<ApiResponse<RestaurantOw
       return { data: null, error: error.message };
     }
 
-    const formattedData: RestaurantOwner[] = data.map((owner: any) => ({
+    const formattedData: RestaurantOwner[] = data.map((owner: RestaurantOwner) => ({
       restaurantownerid: owner.restaurantownerid,
       name: owner.name,
       phone: owner.phone,

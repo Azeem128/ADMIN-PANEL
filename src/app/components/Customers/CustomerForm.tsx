@@ -328,8 +328,6 @@
 
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
 import RemoteImage from "../RemoteImages/RemoteImageCustomer";
 
 interface CustomerFormProps {

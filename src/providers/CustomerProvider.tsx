@@ -29,7 +29,6 @@
 // };
 
 
-
 "use client";
 // customerContext.tsx
 import { createContext, PropsWithChildren, useContext, useState } from "react";
@@ -40,7 +39,7 @@ interface Customer {
   name?: string;
   email?: string;
   phone?: string | null;
-  [key: string]: any; // Allow additional properties for flexibility
+  [key: string]: unknown; // Allow additional properties for flexibility
 }
 
 interface CustomerContextType {

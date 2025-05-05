@@ -2,6 +2,7 @@
 // import { log } from "console";
 // import { toast } from "react-toastify";
 
+
 // const supabase = createClient(
 //   process.env.NEXT_PUBLIC_SUPABASE_URL!,
 //   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -329,17 +330,8 @@
 //   }
 // };
 
+import { supabase } from "@/lib/supabaseClient";
 
-
-
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface RestaurantItem {
   itemid: string;
   restaurantid: string;

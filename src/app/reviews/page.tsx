@@ -290,13 +290,29 @@
 
 // export default ReviewsPage;
 //--------
+
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { FaStar, FaReply, FaEdit, FaTrash } from "react-icons/fa";
 
+// Interface for Review data
+interface Review {
+  id: number;
+  dishName: string;
+  category: string;
+  comment: string;
+  reviewerName: string;
+  rating: number;
+  date: string;
+  image: string;
+  tags: string[];
+  reply: string;
+}
+
 // Dummy data for reviews
-const initialReviews = [
+const initialReviews: Review[] = [
   {
     id: 1,
     dishName: "Chicken Biryani Special",
@@ -336,12 +352,12 @@ const initialReviews = [
 ];
 
 const ReviewsPage = () => {
-  const [reviews, setReviews] = useState(initialReviews);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews);
   const [filterPeriod, setFilterPeriod] = useState("Last 30 Days");
   const [sortBy, setSortBy] = useState("Highest Rated");
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [currentReview, setCurrentReview] = useState<any>(null);
+  const [currentReview, setCurrentReview] = useState<Review | null>(null);
 
   const filteredReviews = reviews.filter((review) => {
     if (filterPeriod === "All Time") return true;
@@ -358,7 +374,7 @@ const ReviewsPage = () => {
 
   const topReviews = sortedReviews.slice(0, 3);
 
-  const handleReply = (review: any) => {
+  const handleReply = (review: Review) => {
     setCurrentReview(review);
     setIsReplyModalOpen(true);
   };
@@ -369,7 +385,7 @@ const ReviewsPage = () => {
     const replyText = form.reply.value;
     setReviews(
       reviews.map((r) =>
-        r.id === currentReview.id ? { ...r, reply: replyText } : r
+        r.id === currentReview!.id ? { ...r, reply: replyText } : r
       )
     );
     setIsReplyModalOpen(false);
@@ -377,7 +393,7 @@ const ReviewsPage = () => {
     form.reset();
   };
 
-  const handleEditReview = (review: any) => {
+  const handleEditReview = (review: Review) => {
     setCurrentReview(review);
     setIsEditModalOpen(true);
   };
@@ -386,7 +402,7 @@ const ReviewsPage = () => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const updatedReview = {
-      ...currentReview,
+      ...currentReview!,
       comment: form.comment.value,
       rating: parseFloat(form.rating.value),
     };
@@ -408,7 +424,7 @@ const ReviewsPage = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-blue-900">Reviews</h1>
-        <p className="text-sm text-gray-500">Dashboard &gt; Customer Reviews</p>
+        <p className="text-sm text-gray-500">Dashboard > Customer Reviews</p>
       </div>
 
       {/* Filters */}
@@ -519,10 +535,12 @@ const ReviewsPage = () => {
             <p className="text-sm text-green-600">{review.category}</p>
             <p className="text-sm text-gray-600 mt-2">{review.comment}</p>
             <div className="flex items-center mt-2">
-              <img
+              <Image
                 src={`https://randomuser.me/api/portraits/men/${review.id}.jpg`}
                 alt={review.reviewerName}
-                className="w-8 h-8 rounded-full mr-2"
+                width={32}
+                height={32}
+                className="rounded-full mr-2"
               />
               <div>
                 <p className="text-sm font-medium">{review.reviewerName}</p>

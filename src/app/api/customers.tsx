@@ -42,7 +42,6 @@
 //   }
   
 
-
 import { supabase } from "../../lib/supabaseClient";
 
 // Interface for Customer data
@@ -76,7 +75,7 @@ export async function getAllCustomers(): Promise<ApiResponse<Customer[]>> {
     console.log(data);
 
     return { data, error: null };
-  } catch (error: any) {
+  } catch (error: Error) {
     console.error("Error fetching customers:", error.message);
     return { data: null, error: error.message };
   }
