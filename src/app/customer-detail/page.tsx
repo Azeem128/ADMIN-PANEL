@@ -44,7 +44,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getAllCustomers } from "../../api/customers"; // Your API for fetching customer data
+import { getAllCustomers } from "../api/customers";
 
 // Define the Customer interface
 interface Customer {
