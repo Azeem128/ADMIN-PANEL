@@ -1,7 +1,13 @@
-export default function DashboardCards({ data }: any) {
-  const totalOrders = data.reduce((acc: number, curr: any) => acc + curr.count, 0);
-  var totalRevenue = data.reduce((acc: number, curr: any) => acc + curr.amount, 0);
-  totalRevenue = totalRevenue - data.filter((item: any) => item.status === "Canceled").reduce((acc: number, curr: any) => acc + curr.amount, 0);
+interface DashboardData {
+  status: string;
+  count: number;
+  amount: number;
+}
+
+export default function DashboardCards({ data }: { data: DashboardData[] }) {
+  const totalOrders = data.reduce((acc: number, curr: DashboardData) => acc + curr.count, 0);
+  let totalRevenue = data.reduce((acc: number, curr: DashboardData) => acc + curr.amount, 0);
+  totalRevenue = totalRevenue - data.filter((item: DashboardData) => item.status === "Canceled").reduce((acc: number, curr: DashboardData) => acc + curr.amount, 0);
   const cardStyles = [
     "bg-gradient-to-br from-blue-500 to-blue-600", // Total Revenue
     "bg-gradient-to-br from-green-500 to-green-600", // Total Orders
@@ -18,7 +24,7 @@ export default function DashboardCards({ data }: any) {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium opacity-80">Total Revenue</p>
-            <h2 className="text-3xl font-bold mt-1">${parseInt(totalRevenue).toLocaleString()}</h2>
+            <h2 className="text-3xl font-bold mt-1">${parseInt(totalRevenue.toString()).toLocaleString()}</h2>
           </div>
           <div className="bg-white/20 p-3 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,14 +58,14 @@ export default function DashboardCards({ data }: any) {
       </div>
 
       {/* Status Cards */}
-      {data.map((stat: any, index: number) => (
+      {data.map((stat: DashboardData, index: number) => (
         <div key={stat.status} className={`${cardStyles[2 + (index % 4)]} p-6 rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all duration-300 text-white`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium opacity-80">{stat.status}</p>
               <h2 className="text-3xl font-bold mt-1">{stat.count.toLocaleString()}</h2>
             </div>
-            <div className="bg-white/20 p-3 rounded-full">
+            <div className="bg jurado-white/20 p-3 rounded-full">
               {stat.status === "Completed" && (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Layout from "../components/Layout";
-//import RevenueGraph from "../components/RevenueGraph"; // Commented out RevenueGraph import
-//import Chart from "../components/Chart"; // Commented out Chart import
 import CustomerTable from "../components/Customers/CustomerTable";
 
 export default function CustomersPage() {

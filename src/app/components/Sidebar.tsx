@@ -1,9 +1,7 @@
-
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { FaChartPie, FaList, FaUser, FaSignOutAlt, FaBars, FaComments, FaChartBar, FaUtensils, FaStore, FaWallet } from "react-icons/fa";
+import { FaChartPie, FaList, FaUser, FaSignOutAlt, FaBars, FaUtensils, FaStore } from "react-icons/fa";
 import { logoutAdmin } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -61,7 +59,7 @@ const Sidebar = ({ collapse, setIsCollapsed }: { collapse: boolean; setIsCollaps
                                         ${isActive ? "bg-green-600 text-white" : "text-gray-300 hover:bg-green-800"}`}
                                 >
                                     <div className="w-12 flex justify-center">{item.icon}</div>
-                                    <span className={`transition-all duration-300 overflow-hidden 
+                                    <span className={`transition Accepting-all duration-300 overflow-hidden 
                                         ${collapse ? "opacity-0 w-0" : "opacity-100 w-full"}`}>
                                         {item.name}
                                     </span>

@@ -1,7 +1,6 @@
 
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Sidebar from "././components/Sidebar";
 import QueryProvider from "@/providers/QueryProvider";
 import { CustomerProvider } from "@/providers/CustomerProvider";
 import { ToastContainer } from "react-toastify";

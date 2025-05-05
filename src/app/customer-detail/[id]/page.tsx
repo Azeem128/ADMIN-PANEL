@@ -731,12 +731,14 @@
 // };
 
 // export default CustomerDetail;
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getCustomerById } from "../../api/customers";
 import Layout from "../../components/Layout";
+import Image from "next/image";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 // Define interfaces for nested data
@@ -1001,10 +1003,12 @@ const CustomerDetail: React.FC = () => {
         {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center mb-4">
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
               alt="Profile"
-              className="w-20 h-20 rounded-full mr-4 border-4 border-indigo-200"
+              width={80}
+              height={80}
+              className="rounded-full mr-4 border-4 border-indigo-200"
             />
             <div>
               <h2 className="text-2xl font-bold text-indigo-900">{customer.name}</h2>
@@ -1042,10 +1046,12 @@ const CustomerDetail: React.FC = () => {
                   key={`ordered-food-${index}`}
                   className="flex items-center mb-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                  <img
+                  <Image
                     src={food.image}
                     alt={food.name}
-                    className="w-14 h-14 rounded-lg mr-4 object-cover"
+                    width={56}
+                    height={56}
+                    className="rounded-lg mr-4 object-cover"
                   />
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{food.name}</p>
@@ -1236,10 +1242,12 @@ const CustomerDetail: React.FC = () => {
                       className="border border-gray-200 hover:bg-indigo-50 transition-colors"
                     >
                       <td className="p-3 border border-gray-200 text-xs">
-                        <img
+                        <Image
                           src={item.image}
                           alt={item.name}
-                          className="w-10 h-10 rounded-lg object-cover"
+                          width={40}
+                          height={40}
+                          className="rounded-lg object-cover"
                         />
                       </td>
                       <td className="p-3 border border-gray-200 text-xs">{item.name}</td>

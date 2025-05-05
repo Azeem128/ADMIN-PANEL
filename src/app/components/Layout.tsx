@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 // import SearchBar from "./SearchBar";
 import { FaBars } from "react-icons/fa";
@@ -10,7 +9,6 @@ import { SearchProvider } from "@/providers/SearchProvider";
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const pathname = usePathname();
 
   return (
     <SearchProvider>

@@ -37,10 +37,10 @@ const RemoteImage = ({ path, fallback, ...imageProps }: RemoteImageProps) => {
   return (
     <Image
       src={image || fallback}
-    //   alt="ProfileImage"
-    //   width={120}
-    //   height={120}
-    //   className="mb-3 rounded-full shadow-lg border"
+      alt="Remote Image"
+      // width={120}
+      // height={120}
+      // className="mb-3 rounded-full shadow-lg border"
       {...imageProps}
     />
   );

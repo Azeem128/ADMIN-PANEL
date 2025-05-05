@@ -52,7 +52,7 @@ const AnalyticsPage = () => {
                     {/* Customer Map */}
                     <div className="bg-white p-4 rounded-xl shadow-md">
                         <h3 className="text-xl font-semibold mb-4">Customer Map</h3>
-                        <CustomerMap />
+                        {/* <CustomerMap /> */}
                     </div>
 
                     {/* Orders & Revenue Chart */}

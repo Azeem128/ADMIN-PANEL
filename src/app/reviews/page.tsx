@@ -408,7 +408,7 @@ const ReviewsPage = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-blue-900">Reviews</h1>
-        <p className="text-sm text-gray-500">Dashboard > Customer Reviews</p>
+        <p className="text-sm text-gray-500">Dashboard &gt; Customer Reviews</p>
       </div>
 
       {/* Filters */}

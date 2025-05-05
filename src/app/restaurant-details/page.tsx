@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -90,7 +89,7 @@ const RestaurantDetails = () => {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      toast.error("Failed to fetch restaurants: " + (err as any)?.message || "Unknown error");
+      toast.error("Failed to fetch restaurants: " + (err as Error)?.message || "Unknown error");
       setRestaurants([]);
     } finally {
       setLoadingAction(false);
@@ -158,7 +157,7 @@ const RestaurantDetails = () => {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [subscription]);
 
   const filteredRestaurants = restaurants.filter((restaurant) =>
     restaurant.restaurantname.toLowerCase().includes(searchTerm.toLowerCase())
@@ -210,7 +209,7 @@ const RestaurantDetails = () => {
       }
     } catch (err) {
       console.error("Add restaurant error:", err);
-      toast.error("Failed to add restaurant: " + (err as any)?.message || "Unknown error");
+      toast.error("Failed to add restaurant: " + (err as Error)?.message || "Unknown error");
     } finally {
       setLoadingAction(false);
     }
@@ -253,7 +252,7 @@ const RestaurantDetails = () => {
       }
     } catch (err) {
       console.error("Update restaurant error:", err);
-      toast.error("Failed to update restaurant: " + (err as any)?.message || "Unknown error");
+      toast.error("Failed to update restaurant: " + (err as Error)?.message || "Unknown error");
     } finally {
       setLoadingAction(false);
     }
@@ -299,7 +298,7 @@ const RestaurantDetails = () => {
       }
     } catch (err) {
       console.error("Update rating error:", err);
-      toast.error("Failed to update rating: " + (err as any)?.message || "Unknown error");
+      toast.error("Failed to update rating: " + (err as Error)?.message || "Unknown error");
     } finally {
       setLoadingAction(false);
     }
@@ -323,7 +322,7 @@ const RestaurantDetails = () => {
       fetchRestaurants(currentPage); // Refresh data after deleting
     } catch (err) {
       console.error("Delete restaurant error:", err);
-      toast.error("Failed to delete restaurant: " + (err as any)?.message || "Unknown error");
+      toast.error("Failed to delete restaurant: " + (err as Error)?.message || "Unknown error");
     } finally {
       setLoadingAction(false);
     }
@@ -365,7 +364,6 @@ const RestaurantDetails = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-extrabold text-emerald-900 drop-shadow-md">Restaurant Details</h1>
-      
           </div>
           <div className="flex items-center space-x-6">
             <div className="relative w-72">

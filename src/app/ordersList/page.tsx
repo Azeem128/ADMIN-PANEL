@@ -34,7 +34,7 @@ const OrdersListPage = () => {
     riderid: "",
   });
 
-  const [sortField, setSortField] = useState<keyof Order | "customers.name" | "restaurants.restaurantname">("orderid");
+  // const [sortField, setSortField] = useState<keyof Order | "customers.name" | "restaurants.restaurantname">("orderid");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 5;
@@ -101,8 +101,8 @@ const OrdersListPage = () => {
   const handleSort = (field: keyof Order | "customers.name" | "restaurants.restaurantname") => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     const sortedOrders = [...orders].sort((a, b) => {
-      let aValue: any = a[field];
-      let bValue: any = b[field];
+      let aValue: string | number = a[field];
+      let bValue: string | number = b[field];
 
       if (field === "customers.name") {
         aValue = a.customers.name;
@@ -115,7 +115,7 @@ const OrdersListPage = () => {
       return newSortOrder === "asc" ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
     });
     setOrders(sortedOrders);
-    setSortField(field);
+    // setSortField(field);
     setSortOrder(newSortOrder);
   };
 

@@ -149,157 +149,6 @@
 
 
 
-"use client";
-
-import { useState } from "react";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
-import RemoteImage from "../RemoteImages/RemoteImageCustomer";
-
-interface CustomerFormProps {
-  customer: {
-    customerid: string;
-    name: string;
-    email: string;
-    phone: string | null;
-    image: string | null;
-  };
-  onSubmit: (data: {
-    name: string;
-    email: string;
-    phone: string;
-    image: string;
-  }) => Promise<void>;
-}
-
-const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSubmit }) => {
-  const [formData, setFormData] = useState({
-    name: customer.name || "",
-    email: customer.email || "",
-    phone: customer.phone || "",
-    image: customer.image || "",
-  });
-  const [previewUrl, setPreviewUrl] = useState<string>(customer.image || "");
-  const [fileUpload, setFileUpload] = useState<File | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    setFileUpload(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    toast.info("Processing customer...");
-
-    let imageUrl = formData.image;
-
-    if (fileUpload) {
-      const filePath = `customers/${customer.customerid || crypto.randomUUID()}-${fileUpload.name}`;
-      const { data, error } = await supabase.storage
-        .from("profile-images")
-        .upload(filePath, fileUpload, { upsert: true });
-
-      if (error) {
-        toast.error("Image upload failed: " + error.message);
-        setLoading(false);
-        return;
-      }
-
-      const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-images/${filePath}`;
-      imageUrl = publicUrl;
-    }
-
-    try {
-      await onSubmit({ ...formData, image: imageUrl });
-    } catch (err) {
-      toast.error("Operation failed: " + (err as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow max-w-md mx-auto">
-      <h2 className="text-xl font-bold text-center mb-4">
-        {customer.customerid ? "Edit Customer" : "Add Customer"}
-      </h2>
-
-      {/* Profile Image */}
-      <div className="flex flex-col items-center mb-4">
-        {previewUrl ? (
-          <img src={previewUrl} alt="Preview" className="w-24 h-24 rounded-full object-cover" />
-        ) : customer.image ? (
-          <RemoteImage path={customer.image} alt="Profile Image" fallback="fallback-url" />
-        ) : (
-          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-500">No Image</span>
-          </div>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="mt-2"
-        />
-      </div>
-
-      <input
-        type="text"
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Name"
-        required
-      />
-
-      <input
-        type="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Email"
-        required
-      />
-
-      <input
-        type="text"
-        name="phone"
-        value={formData.phone || ""}
-        onChange={handleChange}
-        className="w-full border p-2 mb-3 rounded"
-        placeholder="Phone"
-      />
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-      >
-        {loading ? "Processing..." : customer.customerid ? "Update Customer" : "Add Customer"}
-      </button>
-    </form>
-  );
-};
-
-export default CustomerForm;
-
-
-
-
-
 
 //   // const [imageShow, setImageShow] = useState(customer.image ? customer.image.split("/").pop() : "No image");
 //   // const [isImageUpload, setIsImageUpload] = useState(false);
@@ -471,3 +320,154 @@ export default CustomerForm;
 // // };
 
 // // export default CustomerForm;
+
+
+
+
+"use client";
+
+import { useState } from "react";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import RemoteImage from "../RemoteImages/RemoteImageCustomer";
+
+interface CustomerFormProps {
+  customer: {
+    customerid: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    image: string | null;
+  };
+  onSubmit: (data: {
+    name: string;
+    email: string;
+    phone: string;
+    image: string;
+  }) => Promise<void>;
+}
+
+const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    name: customer.name || "",
+    email: customer.email || "",
+    phone: customer.phone || "",
+    image: customer.image || "",
+  });
+  const [previewUrl, setPreviewUrl] = useState<string>(customer.image || "");
+  const [fileUpload, setFileUpload] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setFileUpload(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    toast.info("Processing customer...");
+
+    let imageUrl = formData.image;
+
+    if (fileUpload) {
+      const filePath = `customers/${customer.customerid || crypto.randomUUID()}-${fileUpload.name}`;
+      // const { data, error } = await supabase.storage
+      //   .from("profile-images")
+      //   .upload(filePath, fileUpload, { upsert: true });
+
+      // if (error) {
+      //   toast.error("Image upload failed: " + error.message);
+      //   setLoading(false);
+      //   return;
+      // }
+
+      const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-images/${filePath}`;
+      imageUrl = publicUrl;
+    }
+
+    try {
+      await onSubmit({ ...formData, image: imageUrl });
+    } catch (err) {
+      toast.error("Operation failed: " + (err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow max-w-md mx-auto">
+      <h2 className="text-xl font-bold text-center mb-4">
+        {customer.customerid ? "Edit Customer" : "Add Customer"}
+      </h2>
+
+     {/* Profile Image */}
+     <div className="flex flex-col items-center mb-4">
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={previewUrl} alt="Preview" className="w-24 h-24 rounded-full object-cover" />
+        ) : customer.image ? (
+          <RemoteImage path={customer.image} alt="Profile Image" fallback="fallback-url" />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-500">No Image</span>
+          </div>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="mt-2"
+        />
+      </div>
+
+      <input
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        className="w-full border p-2 mb-3 rounded"
+        placeholder="Name"
+        required
+      />
+
+      <input
+        type="email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        className="w-full border p-2 mb-3 rounded"
+        placeholder="Email"
+        required
+      />
+
+      <input
+        type="text"
+        name="phone"
+        value={formData.phone || ""}
+        onChange={handleChange}
+        className="w-full border p-2 mb-3 rounded"
+        placeholder="Phone"
+      />
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+      >
+        {loading ? "Processing..." : customer.customerid ? "Update Customer" : "Add Customer"}
+      </button>
+    </form>
+  );
+};
+
+export default CustomerForm;
+

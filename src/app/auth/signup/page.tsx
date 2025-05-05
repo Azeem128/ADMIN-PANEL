@@ -15,7 +15,7 @@ export default function SignupPage() {
     try {
       await signupAdmin(email, password);
       router.push("/dashboard"); // Redirect after signup
-    } catch (err: any) {
+    } catch (err: Error) {
       setError(err.message);
     }
   };
