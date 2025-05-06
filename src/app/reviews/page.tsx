@@ -145,28 +145,32 @@ const ReviewsPage = () => {
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-blue-900">Reviews</h1>
-        <p className="text-sm text-gray-500">Dashboard > Customer Reviews</p>
+        <p className="text-sm text-gray-500">Dashboard &gt; Customer Reviews</p>
       </div>
 
       {/* Filters */}
-      <div className="flex justify-end space-x-4 mb-6">
-        <select
-          value={filterPeriod}
-          onChange={(e) => setFilterPeriod(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg"
-        >
-          <option>Last 30 Days</option>
-          <option>Last 60 Days</option>
-          <option>All Time</option>
-        </select>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg"
-        >
-          <option>Highest Rated</option>
-          <option>Most Recent</option>
-        </select>
+      <div className="flex justify-end gap-4 mb-6">
+        <div>
+          <select
+            value={filterPeriod}
+            onChange={(e) => setFilterPeriod(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg"
+          >
+            <option value="Last 30 Days">Last 30 Days</option>
+            <option value="Last 60 Days">Last 60 Days</option>
+            <option value="All Time">All Time</option>
+          </select>
+        </div>
+        <div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg"
+          >
+            <option value="Highest Rated">Highest Rated</option>
+            <option value="Most Recent">Most Recent</option>
+          </select>
+        </div>
       </div>
 
       {/* Reply Modal */}
@@ -183,7 +187,7 @@ const ReviewsPage = () => {
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsReplyModalOpen(false)}
@@ -228,7 +232,7 @@ const ReviewsPage = () => {
                   className="w-full p-2 border border-gray-300 rounded-lg"
                 />
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
@@ -274,7 +278,7 @@ const ReviewsPage = () => {
                 <p className="text-sm text-gray-600">Reply: {review.reply}</p>
               </div>
             )}
-            <div className="flex space-x-2 mt-4">
+            <div className="flex gap-2 mt-4">
               <button
                 onClick={() => handleReply(review)}
                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
