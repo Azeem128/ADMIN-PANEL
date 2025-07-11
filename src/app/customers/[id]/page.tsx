@@ -1,63 +1,3 @@
-
-// "use client";
-
-// import { useRouter, useParams } from "next/navigation";
-// import { toast } from "react-toastify";
-// import CustomerForm from "../../components/CustomerForm";
-// import { useCustomerContext } from "@/providers/CustomerProvider";
-// import { supabase } from "@/lib/supabaseClient";
-
-// const CustomerEditPage = () => {
-//   const { customerData } = useCustomerContext();
-//   const { id } = useParams();
-//   const router = useRouter();
-
-//   if (!customerData) {
-//     return (
-//       <div className="flex justify-center items-center min-h-screen">
-//         <p className="text-lg text-gray-600">No customer data available.</p>
-//       </div>
-//     );
-//   }
-
-//   const handleUpdate = async (updatedData: any) => {
-//     const { error } = await supabase
-//       .from("Customers")
-//       .update({
-//         Name: updatedData.name,
-//         Email: updatedData.email,
-//         Phone: updatedData.phone || null,
-//         Image: updatedData.image || null,
-//         UpdatedAt: new Date().toISOString(),
-//       })
-//       .eq("CustomerId", id);
-
-//     if (error) {
-//       toast.error("Failed to update customer: " + error.message);
-//     } else {
-//       toast.success("Customer updated successfully");
-//       router.push("/customers");
-//     }
-//   };
-
-//   return (
-//     <div className="p-6">
-//       <CustomerForm
-//         initialData={{
-//           customerid: customerData.customerid,
-//           name: customerData.name,
-//           email: customerData.email,
-//           phone: customerData.phone || "",
-//           image: customerData.image || "",
-//         }}
-//         onSubmit={handleUpdate}
-//       />
-//     </div>
-//   );
-// };
-
-// export default CustomerEditPage;
-
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
@@ -65,50 +5,121 @@ import { toast } from "react-toastify";
 import CustomerForm from "../../components/CustomerForm";
 import { useCustomerContext } from "@/providers/CustomerProvider";
 import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useState } from "react";
+
+interface Customer {
+  customerid: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  image: string | null;
+}
 
 const CustomerEditPage = () => {
   const { customerData } = useCustomerContext();
-  const { id } = useParams();
+  const { id } = useParams() as { id?: string };
   const router = useRouter();
 
-  if (!customerData) {
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch from Supabase if not in context
+  useEffect(() => {
+    const fetchCustomer = async () => {
+      if (!id) {
+        toast.error("Invalid customer ID in URL");
+        setLoading(false);
+        return;
+      }
+
+      if (customerData && customerData.customerid === id) {
+        setCustomer({
+          customerid: customerData.customerid,
+          name: customerData.name || "",
+          email: customerData.email || "",
+          phone: customerData.phone || "",
+          image: customerData.image || null,
+        });
+        setLoading(false);
+      } else {
+        // Fallback: fetch from Supabase
+        const { data, error } = await supabase
+          .from("customers")
+          .select("*")
+          .eq("customerid", id)
+          .single();
+
+        if (error) {
+          console.error("Supabase fetch error:", error);
+          toast.error("Customer not found");
+        } else {
+          setCustomer({
+            customerid: data.customerid,
+            name: data.name,
+            email: data.email,
+            phone: data.phone,
+            image: data.image || null,
+          });
+        }
+        setLoading(false);
+      }
+    };
+
+    fetchCustomer();
+  }, [id, customerData]);
+
+  const handleUpdate = async (updatedData: { name: string; email: string; phone: string; password: string }) => {
+    try {
+      const { data: customerUpdateData, error: customerError } = await supabase
+        .from("customers")
+        .update({
+          name: updatedData.name,
+          email: updatedData.email,
+          phone: updatedData.phone,
+          updatedat: new Date().toISOString(),
+        })
+        .eq("customerid", id);
+
+      if (customerError) throw customerError;
+
+      const { error: authError } = await supabase.auth.admin.updateUserById(id, {
+        email: updatedData.email,
+        password: updatedData.password || undefined,
+        user_metadata: {
+          full_name: updatedData.name,
+        },
+      });
+
+      if (authError) throw authError;
+
+      toast.success("Customer updated successfully");
+      router.push("/customers");
+    } catch (err: any) {
+      console.error("Update Error:", err);
+      toast.error("Failed to update customer: " + err.message);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-lg text-gray-600">No customer data available.</p>
+        <p className="text-lg text-gray-600">Loading customer...</p>
       </div>
     );
   }
 
-  const handleUpdate = async (updatedData: { name: string; email: string; phone: string; image: string }) => {
-    const { error } = await supabase
-      .from("Customers")
-      .update({
-        name: updatedData.name,
-        email: updatedData.email,
-        phone: updatedData.phone || null,
-        image: updatedData.image || null,
-        updatedat: new Date().toISOString(),
-      })
-      .eq("CustomerId", id);
-
-    if (error) {
-      toast.error("Failed to update customer: " + error.message);
-    } else {
-      toast.success("Customer updated successfully");
-      router.push("/customers");
-    }
-  };
+  if (!customer) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg text-red-600">Error: Customer not found.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
       <CustomerForm
-        customer={{
-          customerid: customerData.customerid,
-          name: customerData.name,
-          email: customerData.email,
-          phone: customerData.phone || "",
-          image: customerData.image || "",
-        }}
+        customer={customer}
         onSubmit={handleUpdate}
       />
     </div>

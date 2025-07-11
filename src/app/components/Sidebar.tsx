@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FaChartPie, FaList, FaUser, FaSignOutAlt, FaBars, FaUtensils, FaStore } from "react-icons/fa";
+import { FaChartPie, FaList, FaUser, FaSignOutAlt, FaBars, FaUtensils, FaStore, FaComments, FaChartBar, FaWallet } from "react-icons/fa";
 import { logoutAdmin } from "../../lib/auth";
 import { useRouter } from "next/navigation";
 
@@ -21,13 +21,13 @@ const Sidebar = ({ collapse, setIsCollapsed }: { collapse: boolean; setIsCollaps
         { name: "Restaurant Details", path: "/restaurant-details", icon: <FaStore /> },
         { name: "Foods", path: "/food", icon: <FaUtensils /> },
         { name: "Order List", path: "/ordersList", icon: <FaList /> },
-        //{ name: "Analytics", path: "/analytics", icon: <FaChartBar /> },
-        // { name: "Reviews", path: "/reviews", icon: <FaComments /> },
-        //{ name: "Food Detail", path: "/food-detail", icon: <FaUtensils /> },
-       // { name: "Customer Detail", path: "/customer-detail", icon: <FaUser /> },
+       { name: "Analytics", path: "/analytics", icon: <FaChartBar /> },
+      { name: "Reviews", path: "/reviews", icon: <FaComments /> },
+       { name: "Food Detail", path: "/food-detail", icon: <FaUtensils /> },
+      //{ name: "Customer Detail", path: "/customer-detail", icon: <FaUser /> },
     
-        // { name: "Chat", path: "/chat", icon: <FaComments /> },
-        // { name: "Wallet", path: "/wallet", icon: <FaWallet /> },
+    { name: "Chat", path: "/chat", icon: <FaComments /> },
+    { name: "Wallet", path: "/wallet", icon: <FaWallet /> },
     ];
 
     const logoutAdminHere = async () => {

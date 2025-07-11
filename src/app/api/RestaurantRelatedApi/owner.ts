@@ -1,48 +1,3 @@
-// import { supabase } from "@/lib/supabaseClient";
-// import { useQuery } from "@tanstack/react-query";
-
-// export const useReadRestaurantItems = () => {
-  
-//     return useQuery({
-//       queryKey: ["itemsRestaurant"],
-//       queryFn: async () => {
-//         const { data, error } = await supabase
-//           .from("restaurantitems")
-//           .select('*')
-//           .order("createdat", { ascending: false });
-  
-//         if (error) {
-//           throw new Error(error.message);
-//         }
-  
-//         console.log("restaurant items hain ye ", data);
-  
-//         return data;
-//       },
-//     });
-//   };
-
-
-//   export const useReadRestaurant = () => {
-  
-//     return useQuery({
-//       queryKey: ["Restaurant"],
-//       queryFn: async () => {
-//         const { data, error } = await supabase
-//           .from("restaurants")
-//           .select('*')
-//           .order("createdat", { ascending: false });
-  
-//         if (error) {
-//           throw new Error(error.message);
-//         }
-  
-//         console.log("restaurant hain ye ", data);
-  
-//         return data;
-//       },
-//     });
-//   };
 
 import { supabase } from "@/lib/supabaseClient";
 
@@ -52,6 +7,7 @@ interface RestaurantOwner {
   phone: string | null;
   email: string;
   createdat: string;
+  VerifiedOwner: boolean; // Added VerifiedOwner field
 }
 
 interface ApiResponse<T> {
@@ -64,19 +20,20 @@ export const getAllRestaurantOwners = async (): Promise<ApiResponse<RestaurantOw
   try {
     const { data, error } = await supabase
       .from("restaurantowners")
-      .select("restaurantownerid, name, phone, email, createdat")
+      .select("restaurantownerid, name, phone, email, createdat, VerifiedOwner") // Added VerifiedOwner
       .order("createdat", { ascending: false });
 
     if (error) {
       return { data: null, error: error.message };
     }
 
-    const formattedData: RestaurantOwner[] = data.map((owner: RestaurantOwner) => ({
+    const formattedData: RestaurantOwner[] = data.map((owner: any) => ({
       restaurantownerid: owner.restaurantownerid,
       name: owner.name,
       phone: owner.phone,
       email: owner.email,
       createdat: owner.createdat,
+      VerifiedOwner: owner.VerifiedOwner || false, // Default to false if undefined
     }));
 
     return { data: formattedData, error: null };
@@ -99,8 +56,9 @@ export const addRestaurantOwner = async (ownerData: {
         phone: ownerData.phone || null,
         email: ownerData.email,
         createdat: new Date().toISOString(),
+        VerifiedOwner: false, // Default to false on creation
       })
-      .select("restaurantownerid, name, phone, email, createdat")
+      .select("restaurantownerid, name, phone, email, createdat, VerifiedOwner") // Added VerifiedOwner
       .single();
 
     if (error) {
@@ -113,6 +71,7 @@ export const addRestaurantOwner = async (ownerData: {
       phone: data.phone,
       email: data.email,
       createdat: data.createdat,
+      VerifiedOwner: data.VerifiedOwner,
     };
 
     return { data: formattedData, error: null };
@@ -135,7 +94,7 @@ export const updateRestaurantOwner = async (
         email: ownerData.email,
       })
       .eq("restaurantownerid", ownerId)
-      .select("restaurantownerid, name, phone, email, createdat")
+      .select("restaurantownerid, name, phone, email, createdat, VerifiedOwner") // Added VerifiedOwner
       .single();
 
     if (error) {
@@ -148,6 +107,7 @@ export const updateRestaurantOwner = async (
       phone: data.phone,
       email: data.email,
       createdat: data.createdat,
+      VerifiedOwner: data.VerifiedOwner,
     };
 
     return { data: formattedData, error: null };

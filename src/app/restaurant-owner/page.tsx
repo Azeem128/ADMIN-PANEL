@@ -1,3 +1,4 @@
+
 // "use client";
 
 // import { useState, useEffect } from "react";
@@ -96,7 +97,7 @@
 //       email: form.email.value,
 //     };
 
-//     const { data: newOwner, error } = await addRestaurantOwner(ownerData);
+//     const { error } = await addRestaurantOwner(ownerData);
 
 //     if (error) {
 //       toast.error("Failed to add owner: " + error);
@@ -128,7 +129,7 @@
 //       email: form.email.value,
 //     };
 
-//     const { data: updatedOwner, error } = await updateRestaurantOwner(currentOwner.restaurantownerid, ownerData);
+//     const { error } = await updateRestaurantOwner(currentOwner.restaurantownerid, ownerData);
 
 //     if (error) {
 //       toast.error("Failed to update owner: " + error);
@@ -337,7 +338,7 @@
 //               <div className="flex justify-end mt-3">
 //                 <button
 //                   onClick={() => setIsViewModalOpen(false)}
-//                   className="p-1 bg-gray-300 rounded-lg hover:bg-gray-400 text-sm"
+//                   className="p-1 bg-gray-300Hq rounded-lg hover:bg-gray-400 text-sm"
 //                 >
 //                   Close
 //                 </button>
@@ -406,16 +407,16 @@
 
 
 
-
 "use client";
 
 import { useState, useEffect } from "react";
-import { FaEdit, FaTrash, FaPlus, FaEye } from "react-icons/fa";
+import { FaEdit, FaTrash, FaEye, FaCheck, FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { supabase } from "@/lib/supabaseClient";
 import { useReadRestaurantOwners } from "../api/RestaurantRelatedApi/useRestaurantOwners";
-import { addRestaurantOwner, updateRestaurantOwner, deleteRestaurantOwner } from "../api/RestaurantRelatedApi/owner";
+import { updateRestaurantOwner, deleteRestaurantOwner } from "../api/RestaurantRelatedApi/owner";
 import Layout from "../components/Layout";
+import { useRouter } from "next/navigation";
 
 interface RestaurantOwner {
   restaurantownerid: string;
@@ -423,19 +424,20 @@ interface RestaurantOwner {
   phone: string | null;
   email: string;
   createdat: string;
+  VerifiedOwner: boolean; // Ensure this is included
 }
 
 const RestaurantOwner = () => {
   const { data, isLoading, isError, error } = useReadRestaurantOwners();
   const [restaurantOwners, setRestaurantOwners] = useState<RestaurantOwner[]>([]);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [currentOwner, setCurrentOwner] = useState<RestaurantOwner | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (data) {
+      console.log("Fetched Data:", data); // Log to debug
       setRestaurantOwners(data);
     }
 
@@ -453,6 +455,7 @@ const RestaurantOwner = () => {
               phone: newOwner.phone,
               email: newOwner.email,
               createdat: newOwner.createdat,
+              VerifiedOwner: newOwner.VerifiedOwner,
             },
             ...prev,
           ]);
@@ -472,6 +475,7 @@ const RestaurantOwner = () => {
                     phone: updatedOwner.phone,
                     email: updatedOwner.email,
                     createdat: updatedOwner.createdat,
+                    VerifiedOwner: updatedOwner.VerifiedOwner,
                   }
                 : owner
             )
@@ -492,31 +496,6 @@ const RestaurantOwner = () => {
       supabase.removeChannel(subscription);
     };
   }, [data]);
-
-  const handleAddOwner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoadingAction(true);
-    toast.info("Adding restaurant owner...");
-
-    const form = e.target as HTMLFormElement;
-    const ownerData = {
-      name: form.name.value,
-      phone: form.phone.value || null,
-      email: form.email.value,
-    };
-
-    const { error } = await addRestaurantOwner(ownerData);
-
-    if (error) {
-      toast.error("Failed to add owner: " + error);
-    } else {
-      toast.success("Restaurant owner added successfully!");
-      setIsAddModalOpen(false);
-      form.reset();
-    }
-
-    setLoadingAction(false);
-  };
 
   const handleEditOwner = (owner: RestaurantOwner) => {
     setCurrentOwner(owner);
@@ -540,7 +519,7 @@ const RestaurantOwner = () => {
     const { error } = await updateRestaurantOwner(currentOwner.restaurantownerid, ownerData);
 
     if (error) {
-      toast.error("Failed to update owner: " + error);
+      toast.error("Failed to update owner: " + error.message);
     } else {
       toast.success("Restaurant owner updated successfully!");
       setIsEditModalOpen(false);
@@ -559,7 +538,7 @@ const RestaurantOwner = () => {
     const { error } = await deleteRestaurantOwner(ownerId);
 
     if (error) {
-      toast.error("Failed to delete owner: " + error);
+      toast.error("Failed to delete owner: " + error.message);
     } else {
       toast.success("Restaurant owner deleted successfully!");
     }
@@ -567,9 +546,30 @@ const RestaurantOwner = () => {
     setLoadingAction(false);
   };
 
-  const handleViewDetails = (owner: RestaurantOwner) => {
-    setCurrentOwner(owner);
-    setIsViewModalOpen(true);
+  const handleViewDetails = (ownerId: string) => {
+    router.push(`/restaurant-owner-detail/${ownerId}`);
+  };
+
+  const handleToggleVerified = async (ownerId: string, currentVerified: boolean) => {
+    setLoadingAction(true);
+    toast.info("Updating verification status...");
+    const newVerified = !currentVerified;
+    const { error } = await supabase
+      .from("restaurantowners")
+      .update({ VerifiedOwner: newVerified, updatedat: new Date().toISOString() })
+      .eq("restaurantownerid", ownerId);
+
+    if (error) {
+      toast.error("Failed to update verification: " + error.message);
+    } else {
+      setRestaurantOwners((prev) =>
+        prev.map((owner) =>
+          owner.restaurantownerid === ownerId ? { ...owner, VerifiedOwner: newVerified } : owner
+        )
+      );
+      toast.success(`Owner ${newVerified ? "verified" : "unverified"} successfully!`);
+    }
+    setLoadingAction(false);
   };
 
   if (isLoading) {
@@ -605,76 +605,10 @@ const RestaurantOwner = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-green-50 p-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-blue-900">Restaurant Owners</h1>
-            {/* <p className="text-xs text-gray-500">Admin Panel > Restaurant Owners</p> */}
-          </div>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="p-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
-            disabled={loadingAction}
-          >
-            <FaPlus className="mr-1 w-4 h-4" /> Add
-          </button>
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-blue-900">Restaurant Owners</h1>
         </div>
 
-        {/* Add Owner Modal */}
-        {isAddModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded-lg w-80">
-              <h2 className="text-lg font-bold mb-3 text-blue-900">Add Restaurant Owner</h2>
-              <form onSubmit={handleAddOwner}>
-                <div className="mb-3">
-                  <label className="block text-xs font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    className="w-full p-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block text-xs font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    required
-                    className="w-full p-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="block text-xs font-medium text-gray-700">Phone</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    className="w-full p-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  />
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddModalOpen(false)}
-                    className="p-1 bg-gray-300 rounded-lg hover:bg-gray-400 text-sm"
-                    disabled={loadingAction}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="p-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
-                    disabled={loadingAction}
-                  >
-                    {loadingAction ? "Adding..." : "Add"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Owner Modal */}
         {isEditModalOpen && currentOwner && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-4 rounded-lg w-80">
@@ -731,31 +665,6 @@ const RestaurantOwner = () => {
           </div>
         )}
 
-        {/* View Details Modal */}
-        {isViewModalOpen && currentOwner && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-4 rounded-lg w-80">
-              <h2 className="text-lg font-bold mb-3 text-blue-900">Owner Details</h2>
-              <div className="space-y-2 text-sm">
-                <p><strong>ID:</strong> {currentOwner.restaurantownerid}</p>
-                <p><strong>Name:</strong> {currentOwner.name}</p>
-                <p><strong>Email:</strong> {currentOwner.email}</p>
-                <p><strong>Phone:</strong> {currentOwner.phone || "N/A"}</p>
-                <p><strong>Joined:</strong> {new Date(currentOwner.createdat).toLocaleDateString()}</p>
-              </div>
-              <div className="flex justify-end mt-3">
-                <button
-                  onClick={() => setIsViewModalOpen(false)}
-                  className="p-1 bg-gray-300Hq rounded-lg hover:bg-gray-400 text-sm"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Restaurant Owners Table */}
         <div className="bg-white rounded-lg shadow-md p-4">
           <h2 className="text-base font-semibold text-blue-900 mb-3">Restaurant Owners List</h2>
           <div className="overflow-x-auto">
@@ -767,6 +676,7 @@ const RestaurantOwner = () => {
                   <th className="p-2 text-blue-900">Email</th>
                   <th className="p-2 text-blue-900">Phone</th>
                   <th className="p-2 text-blue-900">Joined</th>
+                  <th className="p-2 text-blue-900">Verified</th>
                   <th className="p-2 text-blue-900">Actions</th>
                 </tr>
               </thead>
@@ -778,6 +688,17 @@ const RestaurantOwner = () => {
                     <td className="p-2">{owner.email}</td>
                     <td className="p-2">{owner.phone || "N/A"}</td>
                     <td className="p-2">{new Date(owner.createdat).toLocaleDateString()}</td>
+                    <td className="p-2">
+                      <button
+                        onClick={() => handleToggleVerified(owner.restaurantownerid, owner.VerifiedOwner)}
+                        className={`p-1 rounded-lg text-white ${
+                          owner.VerifiedOwner ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
+                        }`}
+                        disabled={loadingAction}
+                      >
+                        {owner.VerifiedOwner ? <FaCheck className="w-4 h-4" /> : <FaTimes className="w-4 h-4" />}
+                      </button>
+                    </td>
                     <td className="p-2 flex space-x-1">
                       <button
                         onClick={() => handleEditOwner(owner)}
@@ -794,7 +715,7 @@ const RestaurantOwner = () => {
                         <FaTrash className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleViewDetails(owner)}
+                        onClick={() => handleViewDetails(owner.restaurantownerid)}
                         className="p-1 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center"
                       >
                         <FaEye className="w-4 h-4" />

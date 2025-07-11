@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { getAllRestaurants } from "./restaurant";
+import { fetchRestaurants } from "./restaurant";
 
 interface RestaurantItem {
   itemid: string;
@@ -11,23 +12,22 @@ interface RestaurantItem {
   rating: number;
   createdat: string;
   updatedat: string;
-  // itemsImage: string | null; // Commented out as per request
-  // itemImages: string | null; // Commented out as per request
+  availablestatus: boolean;
+  itemImages: string[];
+  category: string;
 }
 
-interface RestaurantDeal {
-  dealid: string;
+interface Order {
+  orderid: string;
+  cartid: string;
+  customerid: string;
   restaurantid: string;
-  dealname: string;
-  dealdescription: string | null;
-  baseprice: number;
-  discountpercentage: number | null;
-  startdate: string | null;
-  enddate: string | null;
-  rating: number;
+  status: string;
+  paymentmethod: string;
+  totalamount: number;
   createdat: string;
   updatedat: string;
-  dealitems: { dealitemid: string; itemid: string; item?: RestaurantItem }[];
+  riderid: string | null;
 }
 
 interface Restaurant {
@@ -40,32 +40,22 @@ interface Restaurant {
   rating: number;
   createdat: string;
   updatedat: string;
-  restaurantdeals: RestaurantDeal[];
+  restaurantImage: string | null;
   restaurantitems: RestaurantItem[];
 }
 
-interface UseReadRestaurantsResult {
-  data: Restaurant[] | null;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-}
-
-export const useReadRestaurants = (): UseReadRestaurantsResult => {
+export const useReadRestaurants = () => {
   const [data, setData] = useState<Restaurant[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const fetchRestaurants = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await getAllRestaurants();
-        if (response.error) {
-          throw new Error(response.error);
-        }
-        setData(response.data);
+        const { restaurants } = await fetchRestaurants(1); // Initial fetch with page 1
+        setData(restaurants);
       } catch (err) {
         setIsError(true);
         setError(err as Error);
@@ -73,8 +63,7 @@ export const useReadRestaurants = (): UseReadRestaurantsResult => {
         setIsLoading(false);
       }
     };
-
-    fetchRestaurants();
+    fetchData();
   }, []);
 
   return { data, isLoading, isError, error };

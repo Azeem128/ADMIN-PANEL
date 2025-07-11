@@ -1,3 +1,5 @@
+
+
 import { useState, useEffect } from "react";
 import { getAllRestaurantOwners } from "./owner";
 
@@ -7,6 +9,7 @@ interface RestaurantOwner {
   phone: string | null;
   email: string;
   createdat: string;
+  VerifiedOwner: boolean; // Added VerifiedOwner field
 }
 
 interface UseReadRestaurantOwnersResult {
@@ -30,7 +33,18 @@ export const useReadRestaurantOwners = (): UseReadRestaurantOwnersResult => {
         if (response.error) {
           throw new Error(response.error);
         }
-        setData(response.data);
+        // Log the response to debug
+        console.log("API Response:", response.data);
+        // Ensure data conforms to the updated interface
+        const formattedData = response.data.map((owner: any) => ({
+          restaurantownerid: owner.restaurantownerid,
+          name: owner.name,
+          phone: owner.phone,
+          email: owner.email,
+          createdat: owner.createdat,
+          VerifiedOwner: owner.VerifiedOwner || false, // Default to false if undefined
+        }));
+        setData(formattedData);
       } catch (err) {
         setIsError(true);
         setError(err as Error);

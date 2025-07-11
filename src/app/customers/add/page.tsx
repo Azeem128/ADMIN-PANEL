@@ -1,14 +1,3 @@
-// import CustomerForm from "../../components/CustomerForm";
-
-// const AddCustomerPage = () => {
-//   return (
-//     <div className="p-6">
-//       <CustomerForm />
-//     </div>
-//   );
-// };
-
-// export default AddCustomerPage;
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -19,35 +8,65 @@ import { supabase } from "@/lib/supabaseClient";
 const AddCustomerPage = () => {
   const router = useRouter();
 
-  const handleAddCustomer = async (formData: { name: string; email: string; phone: string; image: string }) => {
-    const { name, email, phone, image } = formData;
+const handleAddCustomer = async (formData: {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+}) => {
+  const { name, email, phone, password } = formData;
 
-    // Generate a new customer ID
-    const customerId = crypto.randomUUID();
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        username: name,
+        full_name: name,
+      },
+    },
+  });
 
-    // Insert the new customer into Supabase
-    const { error } = await supabase.from("Customers").insert({
-      CustomerId: customerId,
-      name: name,
+  if (signUpError) {
+    console.error("Sign Up Error:", signUpError);
+    toast.error("Failed to sign up: " + signUpError.message);
+    return;
+  }
+
+  const userId = data?.user?.id;
+
+  if (data?.user) {
+    const { user_metadata } = data.user;
+
+    const { error: insertError } = await supabase.from("customers").insert({
+      customerid: userId,
       email: email,
-      phone: phone || null,
-      image: image || null,
-      createdat: new Date().toISOString(),
-      noOfOrders: 0,
-      lastOrder: null,
-      completedOrders: 0,
-      cancelledOrders: 0,
-      location: null,
-      totalSpent: 0,
+      name: user_metadata.username,
+      phone: phone,
     });
 
-    if (error) {
-      toast.error("Failed to add customer: " + error.message);
-    } else {
-      toast.success("Customer added successfully!");
-      router.push("/customers");
+    if (insertError) {
+      console.error("Customer Insert Error:", insertError);
+
+      // 👇 Delete the user from auth to avoid orphaned account
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
+
+      if (deleteError) {
+        console.error("Rollback failed: Could not delete user from auth", deleteError);
+        toast.error("Rollback failed. Manual cleanup needed.");
+      } else {
+        toast.error("Failed to add customer. Auth entry rolled back.");
+      }
+
+      return;
     }
-  };
+
+    // Success
+    toast.success("Customer added successfully!");
+    router.push("/customers");
+  }
+};
+
 
   return (
     <div className="p-6">
@@ -57,6 +76,7 @@ const AddCustomerPage = () => {
           name: "",
           email: "",
           phone: "",
+          password: "",
           image: "",
         }}
         onSubmit={handleAddCustomer}
