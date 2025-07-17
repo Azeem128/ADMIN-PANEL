@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { fetchRestaurants } from "./restaurant";
 
@@ -34,13 +33,14 @@ interface Restaurant {
   restaurantid: string;
   restaurantownerid: string;
   restaurantname: string;
-  restaurantlocation: string;
+  restaurant_location_latitude: number;
+  restaurant_location_longitude: number;
   starttiming: string | null;
   endtiming: string | null;
   rating: number;
   createdat: string;
   updatedat: string;
-  restaurantImage: string | null;
+  restaurantimage: string | null;
   restaurantitems: RestaurantItem[];
 }
 

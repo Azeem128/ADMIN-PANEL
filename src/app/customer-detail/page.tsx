@@ -1,147 +1,11 @@
 
-// "use client"; 
-
-// import React, { useState, useEffect } from "react";
-// import { useParams } from "next/navigation";
-// import { getAllCustomers } from "../api/customers";
-
-// // Define the Customer interface
-// interface Customer {
-//   customerid: string;
-//   name: string;
-//   email: string;
-//   createdat: string;
-//   noOfOrders: number;
-//   lastOrder: string;
-//   completedOrders: number;
-//   cancelledOrders: number;
-//   location: string;
-//   totalSpent: number;
-// }
-
-// // Define the API response type
-// interface ApiResponse {
-//   data: Customer[] | null;
-//   error: string | null;
-// }
-
-// const CustomerDetail: React.FC = () => {
-//   const [customer, setCustomer] = useState<Customer | null>(null);
-//   const [loading, setLoading] = useState<boolean>(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const params = useParams();
-//   const customerId = params?.customerid as string;
-
-//   useEffect(() => {
-//     async function fetchCustomer(): Promise<void> {
-//       if (!customerId) {
-//         setError("Customer ID not provided");
-//         setLoading(false);
-//         return;
-//       }
-
-//       setLoading(true);
-//       const response: ApiResponse = await getAllCustomers();
-//       const { data, error } = response;
-//       if (error) {
-//         setError(error);
-//       } else if (data) {
-//         const foundCustomer = data.find((c: Customer) => c.customerid === customerId);
-//         if (foundCustomer) {
-//           setCustomer(foundCustomer);
-//         } else {
-//           setError("Customer not found");
-//         }
-//       }
-//       setLoading(false);
-//     }
-
-//     fetchCustomer();
-//   }, [customerId]);
-
-//   if (loading) {
-//     return <p className="text-gray-600">Loading...</p>;
-//   }
-
-//   if (error || !customer) {
-//     return <p className="text-red-500">{error || "Customer not found"}</p>;
-//   }
-
-//   return (
-//     <div className="bg-gray-100 min-h-screen p-6">
-//       <h1 className="text-2xl font-bold mb-6">Customer Detail</h1>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//         {/* Profile Section */}
-//         <div className="col-span-1 bg-white p-6 rounded-lg shadow">
-//           <h2 className="text-xl font-bold mb-4">{customer.name}</h2>
-//           <p className="text-gray-600 mb-2">
-//             <span className="font-semibold">Email:</span> {customer.email}
-//           </p>
-//           <p className="text-gray-600 mb-2">
-//             <span className="font-semibold">Location:</span> {customer.location}
-//           </p>
-//           <p className="text-gray-600 mb-2">
-//             <span className="font-semibold">Joined:</span>{" "}
-//             {new Date(customer.createdat).toLocaleString()}
-//           </p>
-//         </div>
-
-//         {/* Details Section */}
-//         <div className="col-span-2 bg-white p-6 rounded-lg shadow">
-//           <h2 className="text-xl font-bold mb-4">Order Details</h2>
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//             <div>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Customer ID:</span> {customer.customerid}
-//               </p>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Total Orders:</span> {customer.noOfOrders}
-//               </p>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Last Order:</span> {customer.lastOrder}
-//               </p>
-//             </div>
-//             <div>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Completed Orders:</span>{" "}
-//                 {customer.completedOrders}
-//               </p>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Cancelled Orders:</span>{" "}
-//                 {customer.cancelledOrders}
-//               </p>
-//               <p className="text-gray-600 mb-2">
-//                 <span className="font-semibold">Total Spent:</span> ${customer.totalSpent}
-//               </p>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Placeholder for Future Sections (like "Most Ordered Food" or "Most Liked Food") */}
-//       <div className="mt-6 bg-white p-6 rounded-lg shadow">
-//         <h2 className="text-xl font-bold mb-4">Additional Information</h2>
-//         <p className="text-gray-600">
-//           This section can be expanded to include more details such as &quot;Most Ordered Food&quot; or
-//           &quot;Most Liked Food&quot; as shown in the design.
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default CustomerDetail;
-
-
-
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getCustomerById } from "../api/customers";
 import Layout from "../components/Layout";
 import RemoteImage from "../components/RemoteImages/RemoteImageCustomer";
+import RemoteImageRestaurantItems from "../components/RemoteImages/RemoteImageRestaurantItems";
 import {
   BarChart,
   Bar,
@@ -152,7 +16,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Define interfaces
 interface FoodItem {
   name: string;
   price: number;
@@ -233,7 +96,7 @@ const CustomerDetail: React.FC = () => {
         if (error) {
           setError(error);
         } else if (data) {
-          setCustomer(data); // Use real data from API
+          setCustomer(data);
         } else {
           setError("Customer not found");
         }
@@ -249,7 +112,6 @@ const CustomerDetail: React.FC = () => {
 
   const handleReorder = (order: Order) => {
     alert(`Reordering items from ${order.restaurantName}: ${order.items.map(item => item.name).join(", ")}`);
-    // Replace with actual API call
   };
 
   const handleCancelOrder = (order: Order) => {
@@ -292,7 +154,6 @@ const CustomerDetail: React.FC = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 p-6">
-        {/* Header Section */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-indigo-800">Customer Details</h1>
           <button
@@ -303,7 +164,6 @@ const CustomerDetail: React.FC = () => {
           </button>
         </div>
 
-        {/* Profile Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center mb-4">
             <RemoteImage
@@ -316,17 +176,15 @@ const CustomerDetail: React.FC = () => {
             />
             <div>
               <h2 className="text-2xl font-bold text-indigo-900">{customer.name}</h2>
-              <p className="text-gray-600">{customer.email}</p>
-              <p className="text-gray-600">{customer.location}</p>
+              <p className="text-gray-600">Email: {customer.email}</p>
+              <p className="text-gray-600">Location: {customer.location}</p>
               <p className="text-gray-600">Joined: {new Date(customer.createdat).toLocaleString()}</p>
             </div>
           </div>
           <p className="text-gray-600">Customer ID: {customer.customerid}</p>
         </div>
 
-        {/* Most Ordered Food and Most Liked Food */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          {/* Most Ordered Food */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-indigo-800 mb-4">Most Ordered Food</h2>
             <div className="flex justify-between mb-4">
@@ -360,7 +218,6 @@ const CustomerDetail: React.FC = () => {
                   />
                   <div className="flex-1">
                     <p className="font-medium text-gray-800">{food.name}</p>
-                    <p className="text-sm text-gray-500">{food.name.split(" ")[1]}</p>
                   </div>
                   <p className="font-semibold text-indigo-600">${food.price.toFixed(2)}</p>
                 </div>
@@ -370,7 +227,6 @@ const CustomerDetail: React.FC = () => {
             )}
           </div>
 
-          {/* Most Liked Food with Bar Chart */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-indigo-800 mb-4">Most Liked Food</h2>
             <div className="flex justify-between mb-4">
@@ -412,7 +268,6 @@ const CustomerDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Order Summary Section */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-indigo-800 mb-4">Order Summary</h2>
           <div className="overflow-x-auto">
@@ -467,7 +322,6 @@ const CustomerDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Detail Order Section */}
         {selectedOrder && (
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-indigo-800 mb-4">
@@ -476,46 +330,36 @@ const CustomerDetail: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Customer Name: </span>
-                  {customer.name}
+                  <span className="font-semibold text-indigo-700">Customer Name:</span> {customer.name}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Restaurant Name: </span>
-                  {selectedOrder.restaurantName}
+                  <span className="font-semibold text-indigo-700">Restaurant Name:</span> {selectedOrder.restaurantName}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Rider Name: </span>
-                  {selectedOrder.riderName}
+                  <span className="font-semibold text-indigo-700">Rider Name:</span> {selectedOrder.riderName}
+                </p>
+                <p className="text-gray-600 mb-2">
+                  <span className="font-semibold text-indigo-700">Restaurant Location:</span> {selectedOrder.restaurantLocation}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Order Date: </span>
-                  {selectedOrder.orderDateTime}
+                  <span className="font-semibold text-indigo-700">Order Date:</span> {selectedOrder.orderDateTime}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Restaurant Location: </span>
-                  {selectedOrder.restaurantLocation}
+                  <span className="font-semibold text-indigo-700">Customer Location:</span> {selectedOrder.customerLocation}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Pickup Time: </span>
-                  {selectedOrder.pickupTime}
+                  <span className="font-semibold text-indigo-700">Pickup Time:</span> {selectedOrder.pickupTime}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Delivery Time: </span>
-                  {selectedOrder.deliveryTime}
+                  <span className="font-semibold text-indigo-700">Delivery Time:</span> {selectedOrder.deliveryTime}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Duration of Order: </span>
-                  {selectedOrder.duration}
+                  <span className="font-semibold text-indigo-700">Duration:</span> {selectedOrder.duration}
                 </p>
                 <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Ordered Items: </span>
-                  {selectedOrder.items.length}
-                </p>
-                <p className="text-gray-600 mb-2">
-                  <span className="font-semibold text-indigo-700">Deals: </span>
-                  {selectedOrder.deals}
+                  <span className="font-semibold text-indigo-700">Deals:</span> {selectedOrder.deals}
                 </p>
               </div>
             </div>
@@ -528,7 +372,7 @@ const CustomerDetail: React.FC = () => {
                     <th className="p-3 border border-gray-200">Base Price</th>
                     <th className="p-3 border border-gray-200">Discount Amount</th>
                     <th className="p-3 border border-gray-200">Discount %</th>
-                    <th className="p-3 border border-gray-200">Add-ons (order)</th>
+                    <th className="p-3 border border-gray-200">Add-ons</th>
                     <th className="p-3 border border-gray-200">Add-ons Price</th>
                     <th className="p-3 border border-gray-200">Total</th>
                     <th className="p-3 border border-gray-200">Description</th>

@@ -1,116 +1,172 @@
-
-import { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import DatePicker from 'react-datepicker';
-
-import 'react-datepicker/dist/react-datepicker.css'; // Import date picker styles
-import { useReadAllOrdersRange } from '../api/OrderRelatedApi/orders';
+import { useState } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  ReferenceLine,
+} from "recharts";
+import { DatePickerInput } from "@mantine/dates";
+import { Button, Loader, Text, Group, Box, Card } from "@mantine/core";
+import { useReadAllOrdersRange } from "../api/OrderRelatedApi/orders";
+import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
 
 export default function OrderChart() {
-  // State for date range and granularity
-  const [startDate, setStartDate] = useState<Date | null>(new Date('2024-01-01'));
-  const [endDate, setEndDate] = useState<Date | null>(new Date('2024-12-31'));
-  const [granularity, setGranularity] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [startDate, setStartDate] = useState<Date | null>(new Date("2024-01-01"));
+  const [endDate, setEndDate] = useState<Date | null>(new Date("2024-12-31"));
+  const [granularity, setGranularity] = useState<"daily" | "weekly" | "monthly">("daily");
   const [filterDates, setFilterDates] = useState<{ start: string | undefined; end: string | undefined }>({
-    start: '2024-01-01',
-    end: '2024-12-31',
+    start: "2024-01-01",
+    end: "2024-12-31",
   });
 
-  // Fetch data with the selected date range and granularity
   const { data, isLoading, error } = useReadAllOrdersRange(filterDates.start, filterDates.end, granularity);
 
-  // Handle filter button click
   const handleFilter = () => {
-    const formattedStart = startDate ? startDate.toISOString().split('T')[0] : undefined;
-    const formattedEnd = endDate ? endDate.toISOString().split('T')[0] : undefined;
+    console.log("handleFilter called with:", { startDate, endDate }); // Debug log
+    if (!startDate && !endDate) return;
+
+    let formattedStart: string | undefined;
+    let formattedEnd: string | undefined;
+
+    if (startDate instanceof Date && !isNaN(startDate.getTime())) {
+      formattedStart = startDate.toISOString().split("T")[0];
+    } else {
+      console.warn("Invalid startDate:", startDate); // Debug invalid date
+    }
+
+    if (endDate instanceof Date && !isNaN(endDate.getTime())) {
+      formattedEnd = endDate.toISOString().split("T")[0];
+    } else {
+      console.warn("Invalid endDate:", endDate); // Debug invalid date
+    }
+
+    if (!formattedStart && !formattedEnd) return;
     setFilterDates({ start: formattedStart, end: formattedEnd });
   };
 
-  return (
-    <div className="p-4 bg-white rounded-xl shadow-md">
-      {/* Header */}
-      <h2 className="text-2xl font-bold mb-4">📈 Orders Over Time</h2>
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <Box p="xs" bg="white" radius="md" sx={{ boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+          <Text fw={600}>{`Date: ${label}`}</Text>
+          <Text>{`Orders: ${payload[0].value}`}</Text>
+        </Box>
+      );
+    }
+    return null;
+  };
 
-      {/* Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
-        {/* Date Range */}
-        <div className="flex flex-col">
-          <label className="mb-1 text-sm font-medium">Start Date</label>
-          <DatePicker
-            selected={startDate}
-            onChange={(date: Date | null) => setStartDate(date)}
-            selectsStart
-            startDate={startDate}
-            endDate={endDate}
+  return (
+    <Card p="lg" radius="md" withBorder>
+      <Text size="xl" fw={700} mb="md" c="blue.8">
+        📊 Order Analytics
+      </Text>
+      <Box mb="lg">
+        <Group gap="md" align="center">
+          <DatePickerInput
+            label="Start Date"
+            value={startDate}
+            onChange={(date) => setStartDate(date)}
             maxDate={endDate || new Date()}
-            dateFormat="yyyy-MM-dd"
-            className="border border-gray-300 rounded-md p-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholderText="Select start date"
+            clearable
+            placeholder="Pick start date"
+            style={{ width: "220px" }}
+            styles={{
+              input: {
+                borderColor: "#e0e7ff",
+                transition: "all 0.2s",
+                padding: "8px 12px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+            }}
           />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 text-sm font-medium">End Date</label>
-          <DatePicker
-            selected={endDate}
-            onChange={(date: Date | null) => setEndDate(date)}
-            selectsEnd
-            startDate={startDate}
-            endDate={endDate}
+          <DatePickerInput
+            label="End Date"
+            value={endDate}
+            onChange={(date) => setEndDate(date)}
             minDate={startDate}
             maxDate={new Date()}
-            dateFormat="yyyy-MM-dd"
-            className="border border-gray-300 rounded-md p-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholderText="Select end date"
+            clearable
+            placeholder="Pick end date"
+            style={{ width: "220px" }}
+            styles={{
+              input: {
+                borderColor: "#e0e7ff",
+                transition: "all 0.2s",
+                padding: "8px 12px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              },
+            }}
           />
-        </div>
-
-        {/* Granularity Selection */}
-        <div className="flex flex-col">
-          <label className="mb-1 text-sm font-medium">Granularity</label>
           <select
             value={granularity}
-            onChange={(e) => setGranularity(e.target.value as 'daily' | 'weekly' | 'monthly')}
+            onChange={(e) => setGranularity(e.target.value as "daily" | "weekly" | "monthly")}
             className="border border-gray-300 rounded-md p-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
-        </div>
+          <Button
+            variant="filled"
+            color="blue"
+            onClick={handleFilter}
+            leftSection={isLoading && <Loader size="xs" />}
+            disabled={isLoading}
+          >
+            Apply Filters
+          </Button>
+        </Group>
+      </Box>
 
-        <button
-          onClick={handleFilter}
-          className="mt-6 sm:mt-0 bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200"
-        >
-          Filter
-        </button>
-      </div>
-
-      {/* Total Orders */}
       {data?.totalOrders !== undefined && (
-        <div className="mb-4 text-lg font-semibold">
-          Total Orders: {data.totalOrders}
-        </div>
+        <Text mb="md" c="gray.7" fw={500}>
+          Total Orders: {data.totalOrders.toLocaleString()}
+        </Text>
       )}
 
-      {/* Loading and Error States */}
-      {isLoading && <div className="text-center">Loading...</div>}
-      {error && <div className="text-center text-red-500">Error loading data</div>}
-
-      {/* Chart */}
-      {!isLoading && !error && (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data?.chartData || []} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="orderCount" stroke="#8884d8" activeDot={{ r: 8 }} />
-          </LineChart>
-        </ResponsiveContainer>
+      {isLoading && (
+        <Box style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+          <Loader size="lg" />
+        </Box>
       )}
-    </div>
+      {error && <Text c="red.6" mb="md">Error: {error.message}</Text>}
+
+      {!isLoading && !error && data?.chartData && data.chartData.length > 0 && (
+        <Box style={{ maxHeight: "400px", overflow: "auto" }}>
+          <ResponsiveContainer width="100%" height={400}>
+            <LineChart data={data.chartData} margin={{ top: 10, right: 40, left: 20, bottom: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="name" hide={true} /> {/* Hide X-axis labels */}
+              <YAxis stroke="#666" tick={{ fontSize: 12 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend verticalAlign="top" height={36} />
+              <ReferenceLine y={0} stroke="#ccc" />
+              <Line
+                type="monotone"
+                dataKey="orderCount"
+                stroke="#4CAF50"
+                strokeWidth={3}
+                activeDot={{ r: 6, fill: "#4CAF50", stroke: "none" }}
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
+      {!isLoading && !error && (!data?.chartData || data.chartData.length === 0) && (
+        <Text c="gray.6" ta="center">
+          No data available for the selected range.
+        </Text>
+      )}
+    </Card>
   );
-
-
-
+}

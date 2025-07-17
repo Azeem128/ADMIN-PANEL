@@ -1,60 +1,13 @@
-// import { useState, useEffect } from "react";
-// import { getAllRiders } from "./Rider";
-
-// interface Rider {
-//   riderid: string;
-//   name: string;
-//   phone: string | null;
-//   vehicletype: string | null;
-//   createdat: string;
-// }
-
-// interface UseReadRidersResult {
-//   data: Rider[] | null;
-//   isLoading: boolean;
-//   isError: boolean;
-//   error: Error | null;
-// }
-
-// export const useReadRiders = (): UseReadRidersResult => {
-//   const [data, setData] = useState<Rider[] | null>(null);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [isError, setIsError] = useState(false);
-//   const [error, setError] = useState<Error | null>(null);
-
-//   useEffect(() => {
-//     const fetchRiders = async () => {
-//       try {
-//         setIsLoading(true);
-//         const response = await getAllRiders();
-//         if (response.error) {
-//           throw new Error(response.error);
-//         }
-//         setData(response.data);
-//       } catch (err) {
-//         setIsError(true);
-//         setError(err as Error);
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     fetchRiders();
-//   }, []);
-
-//   return { data, isLoading, isError, error };
-// };
-
 import { useState, useEffect } from "react";
 import { getAllRiders } from "./Rider";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 interface Rider {
   riderid: string;
   name: string;
-  phone: string | null;
   vehicletype: string | null;
   createdat: string;
+  isonline: boolean;
 }
 
 interface UseReadRidersResult {
@@ -62,17 +15,26 @@ interface UseReadRidersResult {
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
+  refetch: () => void;
 }
 
 export const useReadRiders = (): UseReadRidersResult => {
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  }: UseQueryResult<Rider[], Error> = useQuery({
     queryKey: ["riders"],
     queryFn: async () => {
       const response = await getAllRiders();
       if (response.error) throw new Error(response.error);
-      return response.data;
+      return response.data || [];
     },
+    refetchOnWindowFocus: false, // Prevent refetch on focus
+    enabled: true, // Can be toggled based on a condition
   });
 
-  return { data, isLoading, isError, error };
+  return { data, isLoading, isError, error, refetch };
 };

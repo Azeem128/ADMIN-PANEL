@@ -1,5 +1,3 @@
-
-
 import { supabase } from "@/lib/supabaseClient";
 
 interface RestaurantItem {
@@ -34,13 +32,14 @@ interface Restaurant {
   restaurantid: string;
   restaurantownerid: string;
   restaurantname: string;
-  restaurantlocation: string;
+  restaurant_location_latitude: number;
+  restaurant_location_longitude: number;
   starttiming: string | null;
   endtiming: string | null;
   rating: number;
   createdat: string;
   updatedat: string;
-  restaurantImage: string | null;
+  restaurantimage: string | null;
   restaurantitems: RestaurantItem[];
 }
 
@@ -52,13 +51,14 @@ export const fetchRestaurants = async (page: number, restaurantsPerPage: number 
         restaurantid,
         restaurantownerid,
         restaurantname,
-        restaurantlocation,
+        restaurant_location_latitude,
+        restaurant_location_longitude,
         starttiming,
         endtiming,
         rating,
         createdat,
         updatedat,
-        restaurantImage,
+        restaurantimage,
         restaurantitems (
           itemid,
           restaurantid,
@@ -117,7 +117,8 @@ export const fetchRestaurants = async (page: number, restaurantsPerPage: number 
 
 export const addRestaurant = async (restaurantData: {
   restaurantname: string;
-  restaurantlocation: string;
+  restaurant_location_latitude: number;
+  restaurant_location_longitude: number;
   starttiming: string | null;
   endtiming: string | null;
 }) => {
@@ -137,7 +138,7 @@ export const updateRestaurant = async (restaurantId: string, restaurantData: any
       .eq("restaurantid", restaurantId)
       .select();
     if (error) {
-      console.error("Update error details:", error); // Log full error
+      console.error("Update error details:", error);
       throw error;
     }
     return data?.[0];

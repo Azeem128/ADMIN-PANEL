@@ -21,13 +21,6 @@ const Sidebar = ({ collapse, setIsCollapsed }: { collapse: boolean; setIsCollaps
         { name: "Restaurant Details", path: "/restaurant-details", icon: <FaStore /> },
         { name: "Foods", path: "/food", icon: <FaUtensils /> },
         { name: "Order List", path: "/ordersList", icon: <FaList /> },
-       { name: "Analytics", path: "/analytics", icon: <FaChartBar /> },
-      { name: "Reviews", path: "/reviews", icon: <FaComments /> },
-       { name: "Food Detail", path: "/food-detail", icon: <FaUtensils /> },
-      //{ name: "Customer Detail", path: "/customer-detail", icon: <FaUser /> },
-    
-    { name: "Chat", path: "/chat", icon: <FaComments /> },
-    { name: "Wallet", path: "/wallet", icon: <FaWallet /> },
     ];
 
     const logoutAdminHere = async () => {
@@ -98,12 +91,12 @@ const Sidebar = ({ collapse, setIsCollapsed }: { collapse: boolean; setIsCollaps
                 </button>
 
                 {/* Collapse Button */}
-                <button
+                {/* <button
                     onClick={toggleCollapse}
                     className="w-full flex items-center justify-center text-xl p-3 bg-gray-800 hover:bg-gray-700 rounded-lg mt-4"
                 >
                     <FaBars />
-                </button>
+                </button> */}
             </div>
         </aside>
     );

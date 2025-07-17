@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Layout from "../../components/Layout";
-import RemoteImage from "../../components/RemoteImages/RemoteImageCustomer"; // Adjust path as needed
+import RemoteImage from "../../components/RemoteImages/RemoteImageCustomer";
+import RemoteImageRestaurant from "../../components/RemoteImages/RemoteImageRestaurant";
+import RemoteImageRestaurantItems from "../../components/RemoteImages/RemoteImageRestaurantItems";
 import { toast } from "react-toastify";
 
 interface RestaurantOwner {
   restaurantownerid: string;
   name: string;
-  phone: string | null;
   email: string;
   createdat: string;
   updatedat: string;
@@ -19,20 +20,41 @@ interface RestaurantOwner {
 }
 
 interface Restaurant {
+  restaurantid: string;
+  restaurantownerid: string;
   restaurantname: string;
+  restaurant_location_latitude: number;
+  restaurant_location_longitude: number;
+  starttiming: string;
+  endtiming: string;
+  rating: number;
+  createdat: string;
+  updatedat: string;
+  restaurantimage: string | null;
+  business_type: string;
+  business_category: string;
+  cuisine: string;
 }
 
-interface OwnerFile {
-  id: string;
-  file_type: string;
-  file_path: string;
-  uploaded_at: string;
+interface RestaurantItem {
+  itemid: string;
+  restaurantid: string;
+  itemname: string;
+  itemdescription: string;
+  baseprice: number;
+  availablestatus: boolean;
+  discount: number;
+  rating: number;
+  createdat: string;
+  updatedat: string;
+  itemImages: string | null;
+  category: string;
 }
 
 const RestaurantOwnerDetail: React.FC = () => {
   const [owner, setOwner] = useState<RestaurantOwner | null>(null);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [files, setFiles] = useState<OwnerFile[]>([]);
+  const [restaurantItems, setRestaurantItems] = useState<{ [key: string]: RestaurantItem[] }>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -43,7 +65,7 @@ const RestaurantOwnerDetail: React.FC = () => {
   useEffect(() => {
     async function fetchOwnerDetails() {
       if (!ownerId || ownerId === "undefined") {
-        setError("Owner ID not provided");
+        setError("Invalid Owner ID. Please ensure the URL includes a valid owner ID.");
         setLoading(false);
         return;
       }
@@ -51,9 +73,9 @@ const RestaurantOwnerDetail: React.FC = () => {
       setLoading(true);
       try {
         // Fetch owner details
-        const { data, error: ownerError } = await supabase
+        const { data: ownerData, error: ownerError } = await supabase
           .from("restaurantowners")
-          .select("restaurantownerid, name, phone, email, createdat, updatedat, VerifiedOwner, owner_image")
+          .select("restaurantownerid, name, email, createdat, updatedat, VerifiedOwner, owner_image")
           .eq("restaurantownerid", ownerId)
           .single();
 
@@ -62,37 +84,52 @@ const RestaurantOwnerDetail: React.FC = () => {
         // Fetch associated restaurants
         const { data: restaurantData, error: restaurantError } = await supabase
           .from("restaurants")
-          .select("restaurantname")
+          .select(
+            "restaurantid, restaurantownerid, restaurantname, restaurant_location_latitude, restaurant_location_longitude, starttiming, endtiming, rating, createdat, updatedat, restaurantimage, business_type, business_category, cuisine"
+          )
           .eq("restaurantownerid", ownerId);
 
         if (restaurantError) throw restaurantError;
 
-        // Fetch associated files
-        const { data: fileData, error: fileError } = await supabase
-          .from("restaurantowner_files")
-          .select("id, file_type, file_path, uploaded_at")
-          .eq("restaurantownerid", ownerId);
+        // Fetch restaurant items for each restaurant
+        const restaurantIds = restaurantData?.map((r) => r.restaurantid) || [];
+        const { data: itemsData, error: itemsError } = await supabase
+          .from("restaurantitems")
+          .select("itemid, restaurantid, itemname, itemdescription, baseprice, availablestatus, discount, rating, createdat, updatedat, itemImages, category")
+          .in("restaurantid", restaurantIds);
 
-        if (fileError) throw fileError;
+        if (itemsError) throw itemsError;
 
-        // Generate public URLs with 'public/' prefix
-        const ownerImageUrl = data.owner_image
-          ? supabase.storage.from("owner-images").getPublicUrl(`public/${data.owner_image}`).data.publicUrl
+        // Generate image URLs
+        const ownerImageUrl = ownerData.owner_image
+          ? supabase.storage.from("owner-images").getPublicUrl(`public/${ownerData.owner_image}`).data.publicUrl
           : "/null-icon.png";
-        console.log("Generated Owner Image URL:", ownerImageUrl);
 
-        const fileUrls = fileData.map(file =>
-          file.file_path
-            ? supabase.storage.from("restaurant-owner-cnic").getPublicUrl(`public/${file.file_path}`).data.publicUrl
+        const restaurantImageUrls = restaurantData.map((restaurant) =>
+          restaurant.restaurantimage
+            ? supabase.storage.from("restaurant-items").getPublicUrl(`public/${restaurant.restaurantimage}`).data.publicUrl
             : "/null-icon.png"
         );
-        console.log("Generated File URLs:", fileUrls);
 
-        setOwner({ ...data, owner_image: ownerImageUrl });
-        setRestaurants(restaurantData || []);
-        setFiles(fileData.map((file, index) => ({ ...file, file_path: fileUrls[index] })) || []);
+        const itemsByRestaurant = restaurantIds.reduce((acc, restaurantId) => {
+          acc[restaurantId] = itemsData.filter((item) => item.restaurantid === restaurantId).map((item) => ({
+            ...item,
+            itemImages: item.itemImages
+              ? supabase.storage.from("restaurant-items").getPublicUrl(`public/${item.itemImages}`).data.publicUrl
+              : "/null-icon.png",
+          }));
+          return acc;
+        }, {} as { [key: string]: RestaurantItem[] });
+
+        setOwner({ ...ownerData, owner_image: ownerImageUrl });
+        setRestaurants(
+          restaurantData.map((restaurant, index) => ({
+            ...restaurant,
+            restaurantimage: restaurantImageUrls[index],
+          })) || []
+        );
+        setRestaurantItems(itemsByRestaurant);
       } catch (err: any) {
-        console.error("Error fetching owner details:", err.message);
         setError("Failed to fetch owner details: " + err.message);
       }
       setLoading(false);
@@ -104,7 +141,7 @@ const RestaurantOwnerDetail: React.FC = () => {
       .channel("restaurantowner-detail-channel")
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "restaurantowners" },
+        { event: "UPDATE", schema: "public", table: "restaurantowners", filter: `restaurantownerid=eq.${ownerId}` },
         (payload) => {
           const updatedOwner = payload.new as RestaurantOwner;
           if (updatedOwner.restaurantownerid === ownerId) {
@@ -136,7 +173,7 @@ const RestaurantOwnerDetail: React.FC = () => {
     if (error) {
       toast.error("Failed to update verification: " + error.message);
     } else {
-      setOwner(prev => prev ? { ...prev, VerifiedOwner: newVerified } : null);
+      setOwner((prev) => (prev ? { ...prev, VerifiedOwner: newVerified } : null));
       toast.success(`Owner ${newVerified ? "verified" : "unverified"} successfully!`);
     }
     setLoadingAction(false);
@@ -146,7 +183,7 @@ const RestaurantOwnerDetail: React.FC = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-screen">
-          <p className="text-base text-gray-600">Loading...</p>
+          <p className="text-lg text-gray-600">Loading...</p>
         </div>
       </Layout>
     );
@@ -156,7 +193,13 @@ const RestaurantOwnerDetail: React.FC = () => {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-screen">
-          <p className="text-base text-red-600">{error || "Owner not found"}</p>
+          <p className="text-lg text-red-600">{error}</p>
+          <button
+            onClick={() => router.push("/restaurant-owner")}
+            className="ml-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Back to Owners
+          </button>
         </div>
       </Layout>
     );
@@ -164,12 +207,12 @@ const RestaurantOwnerDetail: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-green-50 p-6">
+      <div className="container mx-auto p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-blue-900">Restaurant Owner Details</h1>
+          <h1 className="text-3xl font-extrabold text-gray-800">Restaurant Owner Details</h1>
           <button
-            onClick={() => router.push("/restaurant-owners")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            onClick={() => router.push("/restaurant-owner")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
           >
             Back to Owners
           </button>
@@ -181,79 +224,101 @@ const RestaurantOwnerDetail: React.FC = () => {
               path={owner.owner_image}
               fallback="/null-icon.png"
               alt={`Profile of ${owner.name}`}
-              width={80}
-              height={80}
-              className="rounded-full mr-4 border-4 border-blue-200"
-              onError={() => console.log("Failed to load owner image:", owner.owner_image)}
+              width={100}
+              height={100}
+              className="rounded-full border-4 border-green-200 mr-4"
             />
             <div>
-              <h2 className="text-2xl font-bold text-blue-900">{owner.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{owner.name}</h2>
+              <p className="text-gray-600">Owner ID: {owner.restaurantownerid}</p>
               <p className="text-gray-600">Email: {owner.email}</p>
-              <p className="text-gray-600">Phone: {owner.phone || "N/A"}</p>
               <p className="text-gray-600">Joined: {new Date(owner.createdat).toLocaleString()}</p>
               <p className="text-gray-600">Last Updated: {new Date(owner.updatedat).toLocaleString()}</p>
+              <p className="text-gray-600">
+                Verification Status: {owner.VerifiedOwner ? "Verified ✅" : "Not Verified ❌"}
+              </p>
             </div>
           </div>
-          <p className="text-gray-600">Owner ID: {owner.restaurantownerid}</p>
+          <button
+            onClick={handleVerifyToggle}
+            className={`px-4 py-2 rounded-md text-white ${
+              loadingAction
+                ? "bg-gray-400"
+                : owner.VerifiedOwner
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-green-600 hover:bg-green-700"
+            } transition-transform hover:scale-105`}
+            disabled={loadingAction}
+          >
+            {loadingAction ? "Updating..." : owner.VerifiedOwner ? "Unverify" : "Verify"}
+          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-blue-800 mb-4">Associated Restaurants</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Associated Restaurants</h2>
           {restaurants.length > 0 ? (
-            <ul className="list-disc pl-5">
-              {restaurants.map((restaurant, index) => (
-                <li key={index} className="text-gray-600">{restaurant.restaurantname}</li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-600">No restaurants associated.</p>
-          )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-blue-800 mb-4">Documents</h2>
-          {files.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {files.map((file) => (
-                <div key={file.id} className="p-2 border rounded-lg">
-                  <p className="text-gray-600">Type: {file.file_type}</p>
-                  <p className="text-gray-600">Uploaded: {new Date(file.uploaded_at).toLocaleString()}</p>
-                  <RemoteImage
-                    path={file.file_path}
+              {restaurants.map((restaurant) => (
+                <div key={restaurant.restaurantid} className="border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-800">{restaurant.restaurantname}</h3>
+                  <p className="text-gray-600">Restaurant ID: {restaurant.restaurantid}</p>
+                  <p className="text-gray-600">
+                    Location: ({restaurant.restaurant_location_latitude}, {restaurant.restaurant_location_longitude})
+                  </p>
+                  <p className="text-gray-600">
+                    Timing: {new Date(restaurant.starttiming).toLocaleTimeString()} -{" "}
+                    {new Date(restaurant.endtiming).toLocaleTimeString()}
+                  </p>
+                  <p className="text-gray-600">Rating: {restaurant.rating || "N/A"}</p>
+                  <p className="text-gray-600">Business Type: {restaurant.business_type}</p>
+                  <p className="text-gray-600">Category: {restaurant.business_category}</p>
+                  <p className="text-gray-600">Cuisine: {restaurant.cuisine}</p>
+                  <RemoteImageRestaurant
+                    path={restaurant.restaurantimage}
                     fallback="/null-icon.png"
-                    alt={`Document ${file.id}`}
-                    width={150}
+                    alt={`Image of ${restaurant.restaurantname}`}
+                    width={200}
                     height={150}
-                    className="mt-2"
-                    onError={() => console.log("Failed to load document:", file.file_path)}
+                    className="mt-2 rounded-md object-cover"
                   />
+                  <div className="mt-4">
+                    <h4 className="text-md font-semibold text-gray-700">Menu Items</h4>
+                    {restaurantItems[restaurant.restaurantid]?.length > 0 ? (
+                      <ul className="list-disc pl-5 space-y-2">
+                        {restaurantItems[restaurant.restaurantid].map((item) => (
+                          <li key={item.itemid} className="text-gray-600">
+                            <div>{item.itemname}</div>
+                            <div className="text-sm text-gray-500">Description: {item.itemdescription}</div>
+                            <div className="text-sm text-gray-500">Price: ${item.baseprice}</div>
+                            <div className="text-sm text-gray-500">
+                              Discount: {item.discount ? `${item.discount}%` : "None"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Available: {item.availablestatus ? "Yes" : "No"}
+                            </div>
+                            <div className="text-sm text-gray-500">Rating: {item.rating || "N/A"}</div>
+                            <div className="text-sm text-gray-500">Category: {item.category}</div>
+                            <RemoteImageRestaurantItems
+                              path={item.itemImages}
+                              fallback="/null-icon.png"
+                              alt={`Image of ${item.itemname}`}
+                              width={100}
+                              height={100}
+                              className="mt-2 rounded-md object-cover"
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-gray-600">No menu items available.</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">No documents uploaded.</p>
+            <p className="text-gray-600">No restaurants associated.</p>
           )}
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
-          <div className="flex items-center space-x-4">
-            <span className="text-lg font-medium text-gray-700">
-              {owner.VerifiedOwner ? "Account Verified" : "Not Verified"}
-            </span>
-            <button
-              onClick={handleVerifyToggle}
-              className={`px-4 py-2 rounded-lg text-white ${
-                loadingAction
-                  ? "bg-gray-400"
-                  : owner.VerifiedOwner
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-green-600 hover:bg-green-700"
-              }`}
-              disabled={loadingAction}
-            >
-              {loadingAction ? "Updating..." : owner.VerifiedOwner ? "Unverify" : "Verify"}
-            </button>
-          </div>
         </div>
       </div>
     </Layout>

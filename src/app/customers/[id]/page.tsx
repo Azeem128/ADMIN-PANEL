@@ -2,7 +2,6 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "react-toastify";
-import CustomerForm from "../../components/CustomerForm";
 import { useCustomerContext } from "@/providers/CustomerProvider";
 import { supabase } from "@/lib/supabaseClient";
 import { useEffect, useState } from "react";
@@ -11,7 +10,7 @@ interface Customer {
   customerid: string;
   name: string;
   email: string;
-  phone: string | null;
+  
   image: string | null;
 }
 
@@ -37,7 +36,7 @@ const CustomerEditPage = () => {
           customerid: customerData.customerid,
           name: customerData.name || "",
           email: customerData.email || "",
-          phone: customerData.phone || "",
+       
           image: customerData.image || null,
         });
         setLoading(false);
@@ -57,7 +56,7 @@ const CustomerEditPage = () => {
             customerid: data.customerid,
             name: data.name,
             email: data.email,
-            phone: data.phone,
+           
             image: data.image || null,
           });
         }
@@ -68,14 +67,14 @@ const CustomerEditPage = () => {
     fetchCustomer();
   }, [id, customerData]);
 
-  const handleUpdate = async (updatedData: { name: string; email: string; phone: string; password: string }) => {
+  const handleUpdate = async (updatedData: { name: string; email: string;  password: string }) => {
     try {
       const { data: customerUpdateData, error: customerError } = await supabase
         .from("customers")
         .update({
           name: updatedData.name,
           email: updatedData.email,
-          phone: updatedData.phone,
+         
           updatedat: new Date().toISOString(),
         })
         .eq("customerid", id);

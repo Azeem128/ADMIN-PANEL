@@ -2,8 +2,9 @@
 
 import React from "react";
 
-interface RemoteImageProps {
+interface RemoteImageRiderDocsProps {
   path: string | null;
+  bucket: string;
   fallback: string;
   alt: string;
   width: number;
@@ -11,15 +12,16 @@ interface RemoteImageProps {
   className?: string;
 }
 
-const RemoteImage: React.FC<RemoteImageProps> = ({
+const RemoteImageRiderDocs: React.FC<RemoteImageRiderDocsProps> = ({
   path,
+  bucket,
   fallback,
   alt,
   width,
   height,
   className,
 }) => {
-  const baseUrl = "https://crnpzsowxkvttgmdaaed.supabase.co/storage/v1/object/public/profile-images/";
+  const baseUrl = `https://crnpzsowxkvttgmdaaed.supabase.co/storage/v1/object/public/${bucket}/`;
   const imageUrl = path ? `${baseUrl}${path}` : fallback;
 
   return path ? (
@@ -35,7 +37,7 @@ const RemoteImage: React.FC<RemoteImageProps> = ({
         alt={alt}
         width={width}
         height={height}
-        className="rounded-full object-cover"
+        className="rounded-lg object-cover"
       />
     </a>
   ) : (
@@ -44,9 +46,9 @@ const RemoteImage: React.FC<RemoteImageProps> = ({
       alt="Fallback"
       width={width}
       height={height}
-      className={`${className} rounded-full object-cover`}
+      className={`${className} rounded-lg object-cover`}
     />
   );
 };
 
-export default RemoteImage;
+export default RemoteImageRiderDocs;

@@ -6,7 +6,7 @@ import { getAllRestaurantOwners } from "./owner";
 interface RestaurantOwner {
   restaurantownerid: string;
   name: string;
-  phone: string | null;
+ 
   email: string;
   createdat: string;
   VerifiedOwner: boolean; // Added VerifiedOwner field
@@ -39,7 +39,7 @@ export const useReadRestaurantOwners = (): UseReadRestaurantOwnersResult => {
         const formattedData = response.data.map((owner: any) => ({
           restaurantownerid: owner.restaurantownerid,
           name: owner.name,
-          phone: owner.phone,
+        
           email: owner.email,
           createdat: owner.createdat,
           VerifiedOwner: owner.VerifiedOwner || false, // Default to false if undefined

@@ -1,47 +1,4 @@
-// "use client";
-
-// import { useEffect } from "react";
-// import { toast } from "react-toastify";
-// import { deleteRider } from "../api/RiderRelatedApi/Rider";
-
-// interface DeleteRiderProps {
-//   setLoadingAction: (loading: boolean) => void;
-//   currentRider: Rider | null;
-//   setCurrentRider: (rider: Rider | null) => void;
-// }
-
-// const DeleteRider = ({ setLoadingAction, currentRider, setCurrentRider }: DeleteRiderProps) => {
-//   const handleDeleteRider = async (riderId: string) => {
-//     if (!confirm("Are you sure you want to delete this rider?")) return;
-
-//     setLoadingAction(true);
-//     toast.info("Deleting rider...");
-
-//     const { error } = await deleteRider(riderId);
-
-//     if (error) {
-//       toast.error("Failed to delete rider: " + error.message);
-//     } else {
-//       toast.success("Rider deleted successfully!");
-//       setCurrentRider(null);
-//     }
-
-//     setLoadingAction(false);
-//   };
-
-//   useEffect(() => {
-//     if (currentRider?.riderid) {
-//       handleDeleteRider(currentRider.riderid);
-//     }
-//   }, [currentRider]);
-
-//   return null; // No UI, triggered via ReadRiders
-// };
-
-// export default DeleteRider;
-
 "use client";
-
 import { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import { deleteRider } from "../api/RiderRelatedApi/Rider";
@@ -49,7 +6,6 @@ import { deleteRider } from "../api/RiderRelatedApi/Rider";
 interface Rider {
   riderid: string;
   name: string;
-  phone: string | null;
   vehicletype: string | null;
   createdat: string;
 }
